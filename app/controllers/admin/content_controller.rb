@@ -23,6 +23,14 @@ class Admin::ContentController < Admin::BaseController
     end
   end
 
+  def merge
+    @article1 = Article.find(params[:id])
+    @article2 = Article.find(params[:merge_with])
+    @article1.merge_with(@article2)
+    flash[:notice] = _("The articles were merged successfully")
+    redirect_to :action => 'index'
+  end
+
   def new
     new_or_edit
   end

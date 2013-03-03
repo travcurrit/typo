@@ -377,6 +377,13 @@ class Article < Content
     [:body, :extended]
   end
 
+  def merge_with(other_article_id)
+    other_article = Article.find(other_article_id)
+    self.body_and_extended = self.body_and_extended + other_article.body_and_extended
+    self.save!
+    #other_article
+  end
+
   # The web interface no longer distinguishes between separate "body" and
   # "extended" fields, and instead edits everything in a single edit field,
   # separating the extended content using "\<!--more-->".
@@ -466,4 +473,5 @@ class Article < Content
     to = to - 1 # pull off 1 second so we don't overlap onto the next day
     return from..to
   end
+
 end

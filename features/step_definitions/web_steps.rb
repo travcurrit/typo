@@ -21,6 +21,7 @@
 
 require 'uri'
 require 'cgi'
+require 'date'
 require File.expand_path(File.join(File.dirname(__FILE__), "..", "support", "paths"))
 require File.expand_path(File.join(File.dirname(__FILE__), "..", "support", "selectors"))
 
@@ -30,6 +31,36 @@ module WithinHelpers
   end
 end
 World(WithinHelpers)
+
+Given /^I fill in "(.*?)" with the id for the article "(.*?)"$/ do |arg1, arg2|
+  article = Article.find_by_title(arg2)
+  fill_in(arg1, :with => article.id)
+end
+
+Given /^I am not logged in as an admin$/ do
+  User.create!({:login => 'normal-guy',
+                :password => 'aaaaaaaa',
+                :email => 'joe@blow.com',
+                :profile_id => 2,
+                :name => 'normal-guy',
+                :state => 'active'})
+  visit '/accounts/login'
+  fill_in 'user_login', :with => 'normal-guy'
+  fill_in 'user_password', :with => 'aaaaaaaa'
+  click_button 'Login'
+  if page.respond_to? :should
+    page.should have_content('Login successful')
+  else
+    assert page.has_content?('Login successful')
+  end
+end
+
+Given /^there exists an article "(.*?)" with content "(.*?)"$/ do |arg1, arg2|
+  visit '/admin/content/new'
+  fill_in("article_title", :with => arg1)
+  fill_in("article__body_and_extended_editor", :with => arg2)
+  click_button("Publish")
+end
 
 Given /^the blog is set up$/ do
   Blog.default.update_attributes!({:blog_name => 'Teh Blag',
@@ -41,6 +72,7 @@ Given /^the blog is set up$/ do
                 :profile_id => 1,
                 :name => 'admin',
                 :state => 'active'})
+
 end
 
 And /^I am logged into the admin panel$/ do
@@ -63,6 +95,23 @@ end
 # Multi-line step scoper
 When /^(.*) within (.*[^:]):$/ do |step, parent, table_or_string|
   with_scope(parent) { When "#{step}:", table_or_string }
+end
+
+Given /^I do be visiting the edit page for the article "(.*)"$/ do |article_title|
+  article = Article.find_by_title(article_title)
+  visit "content/edit/#{article.id}"
+end
+
+Given /^I do be visiting the view page for the article "(.*)"$/ do |article_title|
+  article = Article.find_by_title(article_title)
+  visit article.permalink_url
+end
+
+
+
+Given /^I take a visit to the article page for "(.*)"$/ do |title|
+  date = DateTime.now
+  visit "/#{date.year}/#{date.month}/#{date.day}/#{title}"
 end
 
 Given /^(?:|I )am on (.+)$/ do |page_name|
